@@ -2,17 +2,11 @@ package day03
 
 import (
 	"math"
+	"strings"
 )
 
-func toExp(r rune) int {
-	if r < 91 {
-		return int(r) - 39
-	} else {
-		return int(r) - 97
-	}
-}
-
 const Path = "./day03/input.txt"
+const alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 func Calculate(input []string) (individualSum int, groupSum int) {
 	var groupContent, leftContent, rightContent int64 = 0, 0, 0
@@ -20,10 +14,10 @@ func Calculate(input []string) (individualSum int, groupSum int) {
 		content := input[i]
 		leftContent, rightContent = 0, 0
 		for _, v := range content[:len(content)/2] {
-			leftContent |= 1 << toExp(v)
+			leftContent |= 1 << strings.IndexRune(alphabet, v)
 		}
 		for _, v := range content[len(content)/2:] {
-			rightContent |= 1 << toExp(v)
+			rightContent |= 1 << strings.IndexRune(alphabet, v)
 		}
 
 		individualSum += 1 + int(math.Logb(float64(leftContent&rightContent)))

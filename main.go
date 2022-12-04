@@ -1,10 +1,11 @@
 package main
 
 import (
-	day "aoc-2022/day04"
+	day "aoc-2022/day03"
 	"bufio"
 	"fmt"
 	"os"
+	"time"
 )
 
 func main() {
@@ -20,7 +21,9 @@ func main() {
 		lines = append(lines, fileScanner.Text())
 	}
 
+	timeStart := time.Now()
 	score1, score2 := day.Calculate(lines)
-	fmt.Println("Score 1:", score1)
-	fmt.Println("Score 2:", score2)
+	timeElapsed := time.Since(timeStart)
+
+	fmt.Printf("Score 1: %d\nScore 2: %d\nTime elapsed: %dms", score1, score2, timeElapsed.Milliseconds())
 }
