@@ -1,13 +1,12 @@
-package day01
+package day1
 
 import (
+	"aoc-2022/lib"
 	"sort"
 	"strconv"
 )
 
-const Path = "./day01/input.txt"
-
-func Calculate(input []string) (topCalories int, top3Calories int) {
+func Process(input []string) (topCalories lib.Solution, top3Calories lib.Solution) {
 	elves := []int{0}
 	for _, v := range input {
 		val, err := strconv.Atoi(v)
@@ -18,5 +17,6 @@ func Calculate(input []string) (topCalories int, top3Calories int) {
 		}
 	}
 	sort.Ints(elves)
-	return elves[len(elves)-1], elves[len(elves)-3] + elves[len(elves)-2] + elves[len(elves)-1]
+
+	return lib.IScore(elves[len(elves)-1]), lib.IScore(elves[len(elves)-3] + elves[len(elves)-2] + elves[len(elves)-1])
 }

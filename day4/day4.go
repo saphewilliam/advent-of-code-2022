@@ -1,18 +1,19 @@
-package day04
+package day4
 
-import "fmt"
+import (
+	"aoc-2022/lib"
+	"fmt"
+)
 
-const Path = "./day04/input.txt"
-
-func Calculate(input []string) (overlaps int, fullOverlaps int) {
+func Process(input []string) (overlaps lib.Solution, fullOverlaps lib.Solution) {
 	for _, v := range input {
 		var min1, max1, min2, max2 int
 		fmt.Sscanf(v, "%d-%d,%d-%d", &min1, &max1, &min2, &max2)
 		if min1 <= max2 && min2 <= max1 {
-			overlaps++
+			overlaps.I++
 		}
 		if min1 <= min2 && max1 >= max2 || min2 <= min1 && max2 >= max1 {
-			fullOverlaps++
+			fullOverlaps.I++
 		}
 	}
 	return
