@@ -1,4 +1,4 @@
-package days
+package main
 
 import (
 	"aoc-2022/day1"
@@ -15,7 +15,7 @@ type Day struct {
 	Part1, Part2, TestPart1, TestPart2 string
 }
 
-func GetDay(number string) (day Day, isPresent bool) {
+func getDay(number string) (day Day, isPresent bool) {
 	days := map[string]Day{
 		"1": {Process: day1.Process, TestPart1: "24000", TestPart2: "45000", Part1: "72511", Part2: "212117"},
 		"2": {Process: day2.Process, TestPart1: "15", TestPart2: "12", Part1: "12740", Part2: "11980"},

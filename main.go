@@ -1,7 +1,6 @@
 package main
 
 import (
-	"aoc-2022/days"
 	"aoc-2022/lib"
 	"bufio"
 	"fmt"
@@ -36,7 +35,7 @@ func gradeSolution(name, correct string, test lib.Solution) {
 
 func main() {
 	for _, v := range os.Args[1:] {
-		day, dayFound := days.GetDay(v)
+		day, dayFound := getDay(v)
 		if !dayFound {
 			fmt.Println(v + " is not a valid day value!")
 			continue
