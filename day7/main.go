@@ -2,67 +2,55 @@ package day7
 
 import (
 	"aoc-2022/lib"
-	"fmt"
+	"strconv"
+	"strings"
 )
 
-type Node struct {
-	content map[string]*Node
+type Dir struct {
+	content []*Dir
 	size    int
 }
 
-func traverse(n *Node, s *lib.Solution) (size int) {
-	size = n.size
-	for _, v := range n.content {
-		nodeSize := traverse(v, s)
-		size += nodeSize
+func getDirSize(dir *Dir) (size int) {
+	size = dir.size
+	for _, v := range dir.content {
+		size += getDirSize(v)
 	}
-	if size <= 100000 {
-		s.I += size
-	}
+	dir.size = size
 	return size
 }
 
-// TODO solution2 rename
+func traverse(dir *Dir, s1, s2 *lib.Solution, target int) {
+	if dir.size <= 100000 {
+		s1.I += dir.size
+	}
+	if dir.size-target >= 0 && dir.size < s2.I {
+		s2.I = dir.size
+	}
+	for _, v := range dir.content {
+		traverse(v, s1, s2, target)
+	}
+}
+
 func Process(input []string) (solution1 lib.Solution, solution2 lib.Solution) {
-	root := Node{content: make(map[string]*Node)}
-	s := Stack[*Node]{values: []*Node{&root}}
+	root := Dir{}
+	s := lib.NewStack(&root)
 	for _, v := range input {
 		switch {
-		case v[:4] == "dir ":
-			s.Peek().content[v[4:]] = &Node{content: make(map[string]*Node)}
-		case v == "$ ls" || v == "$ cd /":
+		case v == "$ ls" || v == "$ cd /" || v[:4] == "dir ":
 			continue
 		case v == "$ cd ..":
 			s.Pop()
 		case v[:5] == "$ cd ":
-			s.Push(s.Peek().content[v[5:]])
+			s.Peek().content = append(s.Peek().content, s.Push(&Dir{}))
 		default:
-			var size int
-			var name string
-			fmt.Sscanf(v, "%d %s", &size, &name)
+			size, _ := strconv.Atoi(strings.Split(v, " ")[0])
 			s.Peek().size += size
 		}
 	}
 
-	traverse(&root, &solution1)
+	rootSize := getDirSize(&root)
+	solution2 = lib.IScore(rootSize)
+	traverse(&root, &solution1, &solution2, rootSize-40000000)
 	return
-}
-
-// TODO make stack util
-type Stack[T any] struct {
-	values []T
-}
-
-func (s *Stack[T]) Push(value T) {
-	s.values = append(s.values, value)
-}
-
-func (s *Stack[T]) Pop() T {
-	top := s.values[len(s.values)-1]
-	s.values = s.values[:len(s.values)-1]
-	return top
-}
-
-func (s *Stack[T]) Peek() T {
-	return s.values[len(s.values)-1]
 }

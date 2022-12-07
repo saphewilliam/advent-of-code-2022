@@ -10,26 +10,18 @@ func Process(input []string) (solution1 lib.Solution, solution2 lib.Solution) {
 	for ; input[start] != ""; start++ {
 	}
 
-	stacks := make([]Stacks[rune], (len(input[start-1])+1)/4)
+	stacks := make([]Stacks, (len(input[start-1])+1)/4)
 	for i := start - 2; i >= 0; i-- {
 		for j := 0; j*4 < len(input[i]); j++ {
-			r := rune(input[i][j*4+1])
-			if r != 32 {
-				stacks[j].s1.Push(r)
-				stacks[j].s2.Push(r)
-			}
+			stacks[j].Init(rune(input[i][j*4+1]))
 		}
 	}
 
 	for i := start + 1; i < len(input); i++ {
 		fmt.Sscanf(input[i], "move %d from %d to %d", &move, &from, &to)
-		var stack Stack[rune]
+		stacks[to-1].PushMany(stacks[from-1].PopMany(move))
 		for j := 0; j < move; j++ {
 			stacks[to-1].s1.Push(stacks[from-1].s1.Pop())
-			stack.Push(stacks[from-1].s2.Pop())
-		}
-		for i := 0; i < move; i++ {
-			stacks[to-1].s2.Push(stack.Pop())
 		}
 	}
 
@@ -40,21 +32,24 @@ func Process(input []string) (solution1 lib.Solution, solution2 lib.Solution) {
 	return
 }
 
-type Stacks[T any] struct {
-	s1 Stack[T]
-	s2 Stack[T]
+type Stacks struct {
+	s1 lib.Stack[rune]
+	s2 lib.Stack[rune]
 }
 
-type Stack[T any] struct {
-	values []T
+func (s *Stacks) Init(r rune) {
+	if r != 32 {
+		s.s1.Push(r)
+		s.s2.Push(r)
+	}
 }
 
-func (s *Stack[T]) Push(value T) {
-	s.values = append(s.values, value)
+func (s *Stacks) PushMany(values []rune) {
+	s.s2.Values = append(s.s2.Values, values...)
 }
 
-func (s *Stack[T]) Pop() T {
-	top := s.values[len(s.values)-1]
-	s.values = s.values[:len(s.values)-1]
+func (s *Stacks) PopMany(n int) []rune {
+	top := s.s2.Values[s.s2.Size()-n : s.s2.Size()]
+	s.s2.Values = s.s2.Values[:s.s2.Size()-n]
 	return top
 }

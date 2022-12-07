@@ -27,7 +27,7 @@ func getDay(number string) (day Day, isPresent bool) {
 		"4":  {Process: day4.Process, TestPart1: "4", TestPart2: "2", Part1: "888", Part2: "471"},
 		"5":  {Process: day5.Process, TestPart1: "CMZ", TestPart2: "MCD", Part1: "QNNTGTPFN", Part2: "GGNPJBTTR"},
 		"6":  {Process: day6.Process, TestPart1: "10", TestPart2: "29", Part1: "1833", Part2: "3425"},
-		"7":  {Process: day7.Process, TestPart1: "95437", TestPart2: "24933642", Part1: "1334506", Part2: ""},
+		"7":  {Process: day7.Process, TestPart1: "95437", TestPart2: "24933642", Part1: "1334506", Part2: "7421137"},
 		"8":  {Process: day8.Process, TestPart1: "", TestPart2: "", Part1: "", Part2: ""},
 		"9":  {Process: day9.Process, TestPart1: "", TestPart2: "", Part1: "", Part2: ""},
 		"10": {Process: day10.Process, TestPart1: "", TestPart2: "", Part1: "", Part2: ""},
