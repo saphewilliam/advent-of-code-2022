@@ -33,6 +33,7 @@ func gradeSolution(name, correct string, test lib.Solution) {
 	fmt.Printf("%v: %v\n", name, test.GetValue())
 }
 
+// TODO testonly/realonly flag
 func main() {
 	for _, v := range os.Args[1:] {
 		day, dayFound := getDay(v)
