@@ -2,120 +2,37 @@ package day8
 
 import "aoc-2022/lib"
 
+func scanDirection(input []string, dir, axis, row, col, size int) (isHidden bool, score int) {
+	for k := (((axis+1)%2)*row + axis*col) + dir; (dir == -1 && k >= 0) || (dir == 1 && k < size); k += dir {
+		score++
+		if (axis == 0 && input[k][col] >= input[row][col]) || (axis == 1 && input[row][k] >= input[row][col]) {
+			isHidden = true
+			break
+		}
+	}
+	return
+}
+
 func Process(input []string) (solution1 lib.Solution, solution2 lib.Solution) {
 	for i, line := range input {
-		for j, v := range line {
+		for j := range line {
 			if i == 0 || j == 0 || i == len(line)-1 || j == len(line)-1 {
+				solution1.I++
 				continue
 			}
-			up, down, left, right := 0, 0, 0, 0
 
-			// Up
-			for k := i - 1; k >= 0; k-- {
-				up++
-				if rune(input[k][j]) >= v {
-					break
-				}
-			}
+			upHidden, upScore := scanDirection(input, -1, 0, i, j, len(line))
+			downHidden, downScore := scanDirection(input, 1, 0, i, j, len(line))
+			leftHidden, leftScore := scanDirection(input, -1, 1, i, j, len(line))
+			rightHidden, rightScore := scanDirection(input, 1, 1, i, j, len(line))
 
-			// Down
-			for k := i + 1; k < len(line); k++ {
-				down++
-				if rune(input[k][j]) >= v {
-					break
-				}
-			}
-
-			// Left
-			for k := j - 1; k >= 0; k-- {
-				left++
-				if rune(input[i][k]) >= v {
-					break
-				}
-			}
-
-			// Right
-			for k := j + 1; k < len(line); k++ {
-				right++
-				if rune(input[i][k]) >= v {
-					break
-				}
-			}
-
-			score := up * down * left * right
+			score := upScore * downScore * leftScore * rightScore
 			if score > solution2.I {
 				solution2.I = score
 			}
-		}
-	}
-
-	for i, line := range input {
-		for j, v := range line {
-			if i == 0 || j == 0 || i == len(line)-1 || j == len(line)-1 {
+			if !(upHidden && downHidden && leftHidden && rightHidden) {
 				solution1.I++
-				continue
 			}
-
-			isVisible := true
-			// Up
-			for k := i - 1; k >= 0; k-- {
-				if rune(input[k][j]) >= v {
-					isVisible = false
-					break
-				}
-			}
-
-			if isVisible {
-				solution1.I++
-				continue
-			}
-
-			isVisible = true
-
-			// Down
-			for k := i + 1; k < len(line); k++ {
-				if rune(input[k][j]) >= v {
-					isVisible = false
-					break
-				}
-			}
-
-			if isVisible {
-				solution1.I++
-				continue
-			}
-
-			isVisible = true
-
-			// Left
-			for k := j - 1; k >= 0; k-- {
-				if rune(input[i][k]) >= v {
-					isVisible = false
-					break
-				}
-			}
-
-			if isVisible {
-				solution1.I++
-				continue
-			}
-
-			isVisible = true
-
-			// Right
-			for k := j + 1; k < len(line); k++ {
-				if rune(input[i][k]) >= v {
-					isVisible = false
-					break
-				}
-			}
-
-			if isVisible {
-				solution1.I++
-				continue
-			}
-
-			isVisible = true
 		}
 	}
 	return
