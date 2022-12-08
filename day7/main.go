@@ -7,17 +7,16 @@ import (
 )
 
 type Dir struct {
-	content []*Dir
-	size    int
+	parent *Dir
+	dirs   []*Dir
+	size   int
 }
 
-func getDirSize(dir *Dir) (size int) {
-	size = dir.size
-	for _, v := range dir.content {
-		size += getDirSize(v)
+func addFile(dir *Dir, size int) {
+	dir.size += size
+	if dir.parent != nil {
+		addFile(dir.parent, size)
 	}
-	dir.size = size
-	return size
 }
 
 func traverse(dir *Dir, s1, s2 *lib.Solution, target int) {
@@ -27,30 +26,31 @@ func traverse(dir *Dir, s1, s2 *lib.Solution, target int) {
 	if dir.size-target >= 0 && dir.size < s2.I {
 		s2.I = dir.size
 	}
-	for _, v := range dir.content {
+	for _, v := range dir.dirs {
 		traverse(v, s1, s2, target)
 	}
 }
 
 func Process(input []string) (solution1 lib.Solution, solution2 lib.Solution) {
-	root := Dir{}
-	s := lib.NewStack(&root)
+	root := &Dir{}
+	currentDir := root
 	for _, v := range input {
 		switch {
 		case v == "$ ls" || v == "$ cd /" || v[:4] == "dir ":
 			continue
 		case v == "$ cd ..":
-			s.Pop()
+			currentDir = currentDir.parent
 		case v[:5] == "$ cd ":
-			s.Peek().content = append(s.Peek().content, s.Push(&Dir{}))
+			newDir := &Dir{parent: currentDir}
+			currentDir.dirs = append(currentDir.dirs, newDir)
+			currentDir = newDir
 		default:
 			size, _ := strconv.Atoi(strings.Split(v, " ")[0])
-			s.Peek().size += size
+			addFile(currentDir, size)
 		}
 	}
 
-	rootSize := getDirSize(&root)
-	solution2 = lib.IScore(rootSize)
-	traverse(&root, &solution1, &solution2, rootSize-40000000)
+	solution2 = lib.IScore(root.size)
+	traverse(root, &solution1, &solution2, root.size-40000000)
 	return
 }
