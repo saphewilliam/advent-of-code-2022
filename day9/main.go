@@ -3,20 +3,17 @@ package day9
 import (
 	"aoc-2022/lib"
 	"fmt"
+	"math"
 )
 
-type Point struct {
+type Knot struct {
 	x int
 	y int
 }
 
-func getVisitedPoints() int {
-
-}
-
-func Process(input []string) (solution1 lib.Solution, solution2 lib.Solution) {
-	points := make(map[Point]bool)
-	H, T := Point{0, 0}, Point{0, 0}
+func getVisitedPoints(input []string, ropeSize int) int {
+	rope := make([]Knot, ropeSize)
+	visitedPoints := make(map[Knot]bool)
 
 	var dir string
 	var n int
@@ -25,34 +22,30 @@ func Process(input []string) (solution1 lib.Solution, solution2 lib.Solution) {
 		for i := 0; i < n; i++ {
 			switch dir {
 			case "U":
-				H.y++
-				if T.y == H.y-2 {
-					T.y = H.y - 1
-					T.x = H.x
-				}
+				rope[0].y--
 			case "D":
-				H.y--
-				if T.y == H.y+2 {
-					T.y = H.y + 1
-					T.x = H.x
-				}
-			case "L":
-				H.x--
-				if T.x == H.x+2 {
-					T.x = H.x + 1
-					T.y = H.y
-				}
+				rope[0].y++
 			case "R":
-				H.x++
-				if T.x == H.x-2 {
-					T.x = H.x - 1
-					T.y = H.y
-				}
+				rope[0].x--
+			case "L":
+				rope[0].x++
 			}
-			points[T] = true
+			for j := 0; j < len(rope)-1; j++ {
+				dx, dy := (rope[j+1].x - rope[j].x), (rope[j+1].y - rope[j].y)
+				if math.Abs(float64(dx)) != 2 && math.Abs(float64(dy)) != 2 {
+					break
+				}
+				rope[j+1].y = rope[j].y + dy/2
+				rope[j+1].x = rope[j].x + dx/2
+			}
+			visitedPoints[rope[len(rope)-1]] = true
 		}
 	}
+	return len(visitedPoints)
+}
 
-	solution1.I = len(points)
+func Process(input []string) (solution1 lib.Solution, solution2 lib.Solution) {
+	solution1.I = getVisitedPoints(input, 2)
+	solution2.I = getVisitedPoints(input, 10)
 	return
 }
