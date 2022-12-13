@@ -1,39 +1,28 @@
 package day12
 
-import (
-	"aoc-2022/lib"
-)
+import "aoc-2022/lib"
 
-func bfs(points []rune, width, start, goal int) (parents []int) {
-	q := lib.NewQueue(start)
-	for range points {
-		parents = append(parents, -1)
-	}
-
+func getDistance(points []rune, width, start, goal int) (dist int) {
+	q, parents := lib.NewQueue(start), make(map[int]int)
+	parents[start] = -1
 	for !q.IsEmpty() {
 		p := q.Dequeue()
 		if p == goal {
-			return
+			break
 		}
 
 		evaluateDirection := func(pDir int, cond bool) {
-			if cond && pDir != start && parents[pDir] == -1 && points[pDir] <= points[p]+1 {
+			if _, explored := parents[pDir]; cond && !explored && points[pDir] <= points[p]+1 {
 				parents[pDir] = p
 				q.Enqueue(pDir)
 			}
 		}
-
 		evaluateDirection(p-width, p >= width)            // up
 		evaluateDirection(p+width, p+width < len(points)) // down
 		evaluateDirection(p-1, p%width != 0)              // left
 		evaluateDirection(p+1, p%width != width-1)        // right
 	}
-	return
-}
-
-func getDistance(points []rune, width, start, goal int) (dist int) {
-	parents := bfs(points, width, start, goal)
-	for ; goal != start && parents[goal] != -1; dist++ {
+	for _, found := parents[goal]; found && parents[goal] != -1; dist++ {
 		goal = parents[goal]
 	}
 	return
