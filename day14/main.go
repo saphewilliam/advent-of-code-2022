@@ -2,122 +2,62 @@ package day14
 
 import (
 	"aoc-2022/lib"
-	"math"
 	"strings"
 )
 
-type Line struct {
-	startX int
-	startY int
-	endX   int
-	endY   int
-}
-
-type Cave struct {
-	lowBound   int
-	leftBound  int
-	rightBound int
-	blocked    []bool
-}
-
-const SPAN = 200
-const WIDTH = SPAN * 2
-const CENTER = 500
-
-func buildCave(input []string) (c Cave) {
-	lines := []Line{}
+func buildCave(input []string) (cave lib.Set[lib.Point], lowBound int) {
+	cave = lib.NewSet[lib.Point]()
+	var prevP lib.Point
 	for _, line := range input {
-		coords := strings.Split(line, " -> ")
-		for i, coord := range coords {
-			xy := strings.Split(coord, ",")
-			x := lib.UnsafeParseInt(xy[0])
-			y := lib.UnsafeParseInt(xy[1])
-
+		points := strings.Split(line, " -> ")
+		for i, point := range points {
+			s := strings.Split(point, ",")
+			p := lib.Point{X: lib.ParseInt(s[0]), Y: lib.ParseInt(s[1])}
 			if i != 0 {
-				lines[len(lines)-1].endX = x
-				lines[len(lines)-1].endY = y
+				for i := lib.Min(p.X, prevP.X); i <= lib.Max(p.X, prevP.X); i++ {
+					for j := lib.Min(p.Y, prevP.Y); j <= lib.Max(p.Y, prevP.Y); j++ {
+						cave.Add(lib.NewPoint(i, j))
+					}
+				}
 			}
-			if i != len(coords)-1 {
-				lines = append(lines, Line{startX: x, startY: y})
+			if i != len(points)-1 {
+				prevP = p
 			}
-
-			if c.lowBound == 0 || c.lowBound < y {
-				c.lowBound = y
-			}
-			if c.leftBound == 0 || c.leftBound > x {
-				c.leftBound = x
-			}
-			if c.rightBound == 0 || c.rightBound < x {
-				c.rightBound = x
-			}
-		}
-	}
-
-	c.blocked = make([]bool, WIDTH*(c.lowBound+2))
-	for _, l := range lines {
-		if l.startX == l.endX {
-			min := int(math.Min(float64(l.startY), float64(l.endY)))
-			max := int(math.Max(float64(l.startY), float64(l.endY)))
-			for i := min; i <= max; i++ {
-				c.blocked[(l.startX+SPAN-CENTER)+i*WIDTH] = true
-			}
-		}
-		if l.startY == l.endY {
-			min := int(math.Min(float64(l.startX), float64(l.endX)))
-			max := int(math.Max(float64(l.startX), float64(l.endX)))
-			for i := min; i <= max; i++ {
-				c.blocked[(i+SPAN-CENTER)+l.startY*WIDTH] = true
+			if lowBound == 0 || lowBound < p.Y {
+				lowBound = p.Y
 			}
 		}
 	}
 	return
 }
 
-func Process(input []string) (solution1 lib.Solution, solution2 lib.Solution) {
-	c, isOutOfBounds := buildCave(input), false
-
-	for {
-		s := SPAN
-		for {
-			if s+WIDTH >= WIDTH*(c.lowBound+1) ||
-				s%WIDTH < c.leftBound+SPAN-CENTER ||
-				s%WIDTH > c.rightBound+SPAN-CENTER {
-				isOutOfBounds = true
-			}
-
-			// Straight down
-			if s+WIDTH < len(c.blocked) && !c.blocked[s+WIDTH] {
-				s += WIDTH
-				continue
-			}
-
-			// Left down
-			if s%WIDTH == 0 {
-				panic("Cannot go left, increase SPAN constant")
-			}
-			if s+WIDTH-1 < len(c.blocked) && !c.blocked[s+WIDTH-1] {
-				s += WIDTH - 1
-				continue
-			}
-
-			// Right down
-			if s%WIDTH == WIDTH-1 {
-				panic("Cannot go right, increase SPAN constant")
-			}
-			if s+WIDTH+1 < len(c.blocked) && !c.blocked[s+WIDTH+1] {
-				s += WIDTH + 1
-				continue
-			}
-
-			// Tally scores
-			c.blocked[s] = true
-			if !isOutOfBounds {
-				solution1.I++
-			}
-			solution2.I++
-			break
+func getSandDestination(cave lib.Set[lib.Point], lowBound int, s lib.Point) lib.Point {
+	points := []lib.Point{
+		lib.NewPoint(s.X, s.Y+1),
+		lib.NewPoint(s.X-1, s.Y+1),
+		lib.NewPoint(s.X+1, s.Y+1),
+	}
+	for _, p := range points {
+		if s.Y != lowBound+1 && !cave.Has(p) {
+			return getSandDestination(cave, lowBound, p)
 		}
-		if s == SPAN {
+	}
+	return s
+}
+
+func Process(input []string) (solution1 lib.Solution, solution2 lib.Solution) {
+	c, lowBound := buildCave(input)
+	source := lib.NewPoint(500, 0)
+	for {
+		s := getSandDestination(c, lowBound, source)
+
+		if solution1.I == 0 && s.Y == lowBound+1 {
+			solution1.I = solution2.I
+		}
+		solution2.I++
+
+		c.Add(s)
+		if s == source {
 			break
 		}
 	}

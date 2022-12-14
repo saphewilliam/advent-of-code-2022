@@ -57,16 +57,16 @@ func monkeyBusiness(monkeys []*Monkey, rounds, divisor int) int {
 func parseMonkeys(input []string) (monkeys []*Monkey) {
 	for i := 1; i < len(input); i += 7 {
 		m := Monkey{
-			items:     lib.NewQueue(lib.Map(strings.Split(input[i][18:], ", "), lib.UnsafeParseInt)...),
-			divisor:   lib.UnsafeParseInt(input[i+2][21:]),
-			destTrue:  lib.UnsafeParseInt(input[i+3][29:]),
-			destFalse: lib.UnsafeParseInt(input[i+4][30:]),
+			items:     lib.NewQueue(lib.Map(strings.Split(input[i][18:], ", "), lib.ParseInt)...),
+			divisor:   lib.ParseInt(input[i+2][21:]),
+			destTrue:  lib.ParseInt(input[i+3][29:]),
+			destFalse: lib.ParseInt(input[i+4][30:]),
 		}
 
 		switch input[i+1][23] {
 		case '+':
 			m.multVal = 1
-			m.plusVal = lib.UnsafeParseInt(input[i+1][25:])
+			m.plusVal = lib.ParseInt(input[i+1][25:])
 		case '*':
 			multVal, err := strconv.Atoi(input[i+1][25:])
 			if err != nil {
