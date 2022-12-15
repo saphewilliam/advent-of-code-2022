@@ -50,7 +50,6 @@ func Process(input []string) (solution1 lib.Solution, solution2 lib.Solution) {
 	source := lib.NewPoint(500, 0)
 	for {
 		s := getSandDestination(c, lowBound, source)
-
 		if solution1.I == 0 && s.Y == lowBound+1 {
 			solution1.I = solution2.I
 		}
