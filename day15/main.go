@@ -5,70 +5,79 @@ import (
 	"fmt"
 )
 
-func manhattanDistance(source, dest lib.Point) int {
-	return lib.Abs(source.X-dest.X) + lib.Abs(source.Y-dest.Y)
-}
-
-func searchSpace(xLow, xUp, yLow, yUp int, sensors map[lib.Point]int, beacons lib.Set[lib.Point]) (points lib.Set[lib.Point]) {
-	points = lib.NewSet[lib.Point]()
-	for x := xLow; x <= xUp; x++ {
-		for y := yLow; y <= yUp; y++ {
-			p := lib.NewPoint(x, y)
-			for sensor, dist := range sensors {
-				if beacons.Has(p) {
-					break
-				} else if manhattanDistance(sensor, p) <= dist {
-					points.Add(p)
-					break
-				}
-			}
-		}
-		if x%100000 == 0 {
-			fmt.Println(x, "/", xUp)
-		}
-	}
-	return
+type Range struct {
+	min int
+	max int
 }
 
 func Process(input []string) (solution1 lib.Solution, solution2 lib.Solution) {
-	sensors := map[lib.Point]int{}
+	y, yMax := 2000000, 4000000
+	if len(input) == 14 {
+		y, yMax = 10, 20
+	}
+
+	sensors := make([][]Range, yMax)
 	beacons := lib.NewSet[lib.Point]()
 	for _, line := range input {
 		sensor, beacon := lib.Point{}, lib.Point{}
 		fmt.Sscanf(line, "Sensor at x=%d, y=%d: closest beacon is at x=%d, y=%d", &sensor.X, &sensor.Y, &beacon.X, &beacon.Y)
-		sensors[sensor] = manhattanDistance(beacon, sensor)
 		beacons.Add(beacon)
-	}
+		dist := lib.Abs(beacon.X-sensor.X) + lib.Abs(beacon.Y-sensor.Y)
+		for y := lib.Max(0, sensor.Y-dist); y <= lib.Min(yMax-1, sensor.Y+dist); y++ {
+			rNew := Range{sensor.X - (dist - lib.Abs(y-sensor.Y)), sensor.X + (dist - lib.Abs(y-sensor.Y))}
 
-	xLow, xUp, y, cLow, cUp := -10000000, 10000000, 2000000, 0, 4000000
-	if len(input) == 14 {
-		xLow, xUp, y, cLow, cUp = -5, 30, 10, 0, 20
-	}
+			// fmt.Println(rNew, sensors[y])
 
-	s1 := searchSpace(xLow, xUp, y, y, sensors, beacons)
-	s2 := searchSpace(cLow, cUp, cLow, cUp, sensors, beacons)
-	solution1.I = s1.Size()
+			if len(sensors[y]) == 0 {
+				sensors[y] = append(sensors[y], rNew)
+			}
 
-	u := lib.SetUnion(s2, beacons)
-	// fmt.Println(cLow, cUp, len(s), s)
+			for i := 0; i < len(sensors[y]); i++ {
+				if i == 0 && rNew.max < sensors[y][i].min-1 {
+					sensors[y] = append(sensors[y], rNew)
+					copy(sensors[y][i+1:], sensors[y][i:])
+					sensors[y][i] = rNew
+				}
 
-	for x := cLow; x <= cUp; x++ {
-		for y := cLow; y <= cUp; y++ {
-			found := false
-			// u.has
-			for _, p := range u.Elements() {
-				if p == lib.NewPoint(x, y) {
-					found = true
-					break
+				if rNew.min > sensors[y][i].max+1 && (i == len(sensors[y])-1 || rNew.max < sensors[y][i+1].max) {
+					sensors[y] = append(sensors[y], rNew)
+					copy(sensors[y][i+2:], sensors[y][i+1:])
+					sensors[y][i+1] = rNew
+				}
+
+				if sensors[y][i].min <= rNew.max && rNew.min <= sensors[y][i].max+1 {
+					sensors[y] = append(sensors[y], rNew)
+					copy(sensors[y][i+2:], sensors[y][i+1:])
+					sensors[y][i+1] = rNew
+					for i < len(sensors[y])-1 && sensors[y][i].min <= sensors[y][i+1].max && sensors[y][i+1].min <= sensors[y][i].max+1 {
+						sensors[y][i] = Range{lib.Min(sensors[y][i+1].min, sensors[y][i].min), lib.Max(sensors[y][i+1].max, sensors[y][i].max)}
+						sensors[y] = append(sensors[y][:i+1], sensors[y][i+2:]...)
+					}
 				}
 			}
-			if !found {
-				fmt.Println(x, y)
-			}
+
+			// fmt.Println(sensors[y])
 		}
 	}
 
-	// solution2.I = len(searchSpace(cLow, cUp, cLow, cUp, sensors, beacons))
+	for _, r := range sensors[y] {
+		solution1.I += r.max - r.min
+	}
 
+	// TODO somehow two possible ranges are found
+	count := 0
+	for _, s := range sensors {
+		if len(s) == 2 {
+			count++
+		}
+	}
+	fmt.Println("count:", count)
+
+	for i, s := range sensors {
+		if len(s) == 2 {
+			solution2.I = (s[0].max+1)*4000000 + i
+			break
+		}
+	}
 	return
 }
