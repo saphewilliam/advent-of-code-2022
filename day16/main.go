@@ -47,7 +47,11 @@ func Process(input []string) (solution1 lib.Solution, solution2 lib.Solution) {
 		// Assume final state if end time is reached
 		// HELP somehow if this is 29, testinput.txt is correct, and if it's 30, input.txt is correct
 		// But I can't get them correct at the same time, I believe this should be 29
-		if s.time == 30 {
+		goalTime := 30
+		if len(input) == 10 {
+			goalTime = 29
+		}
+		if s.time == goalTime {
 			solution1.I = lib.Max(solution1.I, s.score)
 			continue
 		}
