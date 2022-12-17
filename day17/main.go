@@ -34,7 +34,6 @@ func execute(jets []int, target int) (maxHeight int) {
 		origin := lib.Point{X: 2, Y: maxHeight + 4}
 		rock, rockIndex := getRock(i, origin)
 
-		// fmt.Println(solution1.I, jetIndex, rockIndex, top0, top1, top2, top3, top4, top5, top6)
 		ck := RockCacheKey{jetIndex: jetIndex, rockIndex: rockIndex, col0: top0, col1: top1, col2: top2, col3: top3, col4: top4, col5: top5, col6: top6}
 		cvNew := RockCacheValue{maxHeight: maxHeight, index: i}
 		if cv, exists := cache[ck]; exists {
@@ -54,8 +53,6 @@ func execute(jets []int, target int) (maxHeight int) {
 
 			translate := func(r lib.Point) lib.Point { return lib.Point{X: r.X + origin.X, Y: r.Y + segmentsLeft*segmentHeight} }
 			rock = lib.NewSet(lib.Map(rock.Elements(), translate)...)
-
-			// fmt.Println("Cache hit:", i, solution1.I, segmentsLeft)
 		} else {
 			cache[ck] = cvNew
 		}
@@ -141,5 +138,3 @@ func Process(input []string) (solution1 lib.Solution, solution2 lib.Solution) {
 	solution2.I = execute(jets, 1000000000000)
 	return
 }
-
-// 1556521739090 incorrect
