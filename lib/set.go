@@ -12,7 +12,7 @@ func NewSet[T comparable](elements ...T) Set[T] {
 }
 
 func SetUnion[T comparable](s, t Set[T]) Set[T] {
-	unionSet := NewSet(s.Elements()...)
+	unionSet := s
 	unionSet.Add(t.Elements()...)
 	return unionSet
 }
