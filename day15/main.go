@@ -17,9 +17,9 @@ func Process(input []string) (solution1 lib.Solution, solution2 lib.Solution) {
 	}
 
 	sensors := make([][]Range, yMax)
-	beacons := lib.NewSet[lib.Point]()
+	beacons := lib.NewSet[lib.Point2D]()
 	for _, line := range input {
-		sensor, beacon := lib.Point{}, lib.Point{}
+		sensor, beacon := lib.Point2D{}, lib.Point2D{}
 		fmt.Sscanf(line, "Sensor at x=%d, y=%d: closest beacon is at x=%d, y=%d", &sensor.X, &sensor.Y, &beacon.X, &beacon.Y)
 		beacons.Add(beacon)
 		dist := lib.Abs(beacon.X-sensor.X) + lib.Abs(beacon.Y-sensor.Y)

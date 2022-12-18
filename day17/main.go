@@ -12,26 +12,26 @@ type RockCacheValue struct {
 	maxHeight, index int
 }
 
-func getRock(index int, origin lib.Point) (lib.Set[lib.Point], int) {
-	rocks := [][]lib.Point{
+func getRock(index int, origin lib.Point2D) (lib.Set[lib.Point2D], int) {
+	rocks := [][]lib.Point2D{
 		{{X: 0, Y: 0}, {X: 1, Y: 0}, {X: 2, Y: 0}, {X: 3, Y: 0}},
 		{{X: 1, Y: 0}, {X: 0, Y: 1}, {X: 1, Y: 1}, {X: 2, Y: 1}, {X: 1, Y: 2}},
 		{{X: 0, Y: 0}, {X: 1, Y: 0}, {X: 2, Y: 0}, {X: 2, Y: 1}, {X: 2, Y: 2}},
 		{{X: 0, Y: 0}, {X: 0, Y: 1}, {X: 0, Y: 2}, {X: 0, Y: 3}},
 		{{X: 0, Y: 0}, {X: 1, Y: 0}, {X: 0, Y: 1}, {X: 1, Y: 1}},
 	}
-	translate := func(r lib.Point) lib.Point { return lib.Point{X: r.X + origin.X, Y: r.Y + origin.Y} }
+	translate := func(r lib.Point2D) lib.Point2D { return lib.Point2D{X: r.X + origin.X, Y: r.Y + origin.Y} }
 	id := index % len(rocks)
 	return lib.NewSet(lib.Map(rocks[id], translate)...), id
 }
 
 func execute(jets []int, target int) (maxHeight int) {
 	cache := map[RockCacheKey]RockCacheValue{}
-	rocks := lib.NewSet[lib.Point]()
+	rocks := lib.NewSet[lib.Point2D]()
 	jetIndex := 0
 	top0, top1, top2, top3, top4, top5, top6 := 0, 0, 0, 0, 0, 0, 0
 	for i := 0; i < target; i++ {
-		origin := lib.Point{X: 2, Y: maxHeight + 4}
+		origin := lib.Point2D{X: 2, Y: maxHeight + 4}
 		rock, rockIndex := getRock(i, origin)
 
 		ck := RockCacheKey{jetIndex: jetIndex, rockIndex: rockIndex, col0: top0, col1: top1, col2: top2, col3: top3, col4: top4, col5: top5, col6: top6}
@@ -45,13 +45,15 @@ func execute(jets []int, target int) (maxHeight int) {
 			i += segmentsLeft * segmentSize
 			maxHeight += segmentsLeft * segmentHeight
 
-			newRocks := lib.NewSet[lib.Point]()
+			newRocks := lib.NewSet[lib.Point2D]()
 			for _, r := range rocks.Elements() {
-				newRocks.Add(lib.Point{X: r.X, Y: r.Y + segmentsLeft*segmentHeight})
+				newRocks.Add(lib.Point2D{X: r.X, Y: r.Y + segmentsLeft*segmentHeight})
 			}
 			rocks = newRocks
 
-			translate := func(r lib.Point) lib.Point { return lib.Point{X: r.X + origin.X, Y: r.Y + segmentsLeft*segmentHeight} }
+			translate := func(r lib.Point2D) lib.Point2D {
+				return lib.Point2D{X: r.X + origin.X, Y: r.Y + segmentsLeft*segmentHeight}
+			}
 			rock = lib.NewSet(lib.Map(rock.Elements(), translate)...)
 		} else {
 			cache[ck] = cvNew
@@ -61,9 +63,9 @@ func execute(jets []int, target int) (maxHeight int) {
 			isSettled := false
 
 			// Move by jet pulse
-			jetRock := lib.NewSet[lib.Point]()
+			jetRock := lib.NewSet[lib.Point2D]()
 			for _, r := range rock.Elements() {
-				newR := lib.Point{X: r.X + jets[jetIndex], Y: r.Y}
+				newR := lib.Point2D{X: r.X + jets[jetIndex], Y: r.Y}
 				if newR.X == 7 || newR.X == -1 || rocks.Has(newR) {
 					jetRock = rock
 					break
@@ -75,9 +77,9 @@ func execute(jets []int, target int) (maxHeight int) {
 			rock = jetRock
 
 			// Move by gravity
-			gravityRock := lib.NewSet[lib.Point]()
+			gravityRock := lib.NewSet[lib.Point2D]()
 			for _, r := range rock.Elements() {
-				newR := lib.Point{X: r.X, Y: r.Y - 1}
+				newR := lib.Point2D{X: r.X, Y: r.Y - 1}
 				if newR.Y == 0 || rocks.Has(newR) {
 					gravityRock = rock
 					isSettled = true

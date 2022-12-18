@@ -5,13 +5,49 @@ import (
 	"strconv"
 )
 
-type Point struct {
-	X int
-	Y int
+type Point3D struct {
+	X, Y, Z int
 }
 
-func NewPoint(x int, y int) Point {
-	return Point{X: x, Y: y}
+func NewP3D(x, y, z int) Point3D {
+	return Point3D{X: x, Y: y, Z: z}
+}
+
+type Size3D struct {
+	MinX, MaxX, MinY, MaxY, MinZ, MaxZ int
+}
+
+func NewS3D(minX, maxX, minY, maxY, minZ, maxZ int) Size3D {
+	return Size3D{MinX: minX, MaxX: maxX, MinY: minY, MaxY: maxY, MinZ: minZ, MaxZ: maxZ}
+}
+
+func (size *Size3D) SetAll(p Point3D) {
+	size.MinX = Min(size.MinX, p.X)
+	size.MaxX = Max(size.MaxX, p.X)
+	size.MinY = Min(size.MinY, p.Y)
+	size.MaxY = Max(size.MaxY, p.Y)
+	size.MinZ = Min(size.MinZ, p.Z)
+	size.MaxZ = Max(size.MaxZ, p.Z)
+}
+
+type Point2D struct {
+	X, Y int
+}
+
+func NewP2D(x, y int) Point2D {
+	return Point2D{X: x, Y: y}
+}
+
+type Size2D struct {
+	MinX, MaxX, MinY, MaxY int
+}
+
+func newS2D(minX, maxX, minY, maxY int) Size2D {
+	return Size2D{MinX: minX, MaxX: maxX, MinY: minY, MaxY: maxY}
+}
+
+type Size struct {
+	Min, Max int
 }
 
 func ParseInt(value string) int {
