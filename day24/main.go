@@ -1,4 +1,4 @@
-package day20
+package day24
 
 import "aoc-2022/lib"
 

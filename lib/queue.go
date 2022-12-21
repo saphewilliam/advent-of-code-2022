@@ -25,7 +25,7 @@ func (q *Queue[T]) Dequeue() T {
 		panic("Dequeue failed, queue has size 0")
 	}
 	top := q.Values[0]
-	q.Values = q.Values[1:]
+	q.Values = q.Values[1:len(q.Values):len(q.Values)]
 	return top
 }
 

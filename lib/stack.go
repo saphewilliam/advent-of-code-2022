@@ -26,7 +26,7 @@ func (s *Stack[T]) Pop() T {
 		panic("Pop failed, stack has size 0")
 	}
 	top := s.Values[len(s.Values)-1]
-	s.Values = s.Values[:len(s.Values)-1]
+	s.Values = s.Values[: len(s.Values)-1 : len(s.Values)-1]
 	return top
 }
 

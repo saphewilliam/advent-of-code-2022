@@ -14,6 +14,11 @@ import (
 	"aoc-2022/day19"
 	"aoc-2022/day2"
 	"aoc-2022/day20"
+	"aoc-2022/day21"
+	"aoc-2022/day22"
+	"aoc-2022/day23"
+	"aoc-2022/day24"
+	"aoc-2022/day25"
 	"aoc-2022/day3"
 	"aoc-2022/day4"
 	"aoc-2022/day5"
@@ -51,6 +56,11 @@ func getDay(number string) (day Day, isPresent bool) {
 		"18": {Process: day18.Process, TestPart1: "64", TestPart2: "58", Part1: "4302", Part2: "2492"},
 		"19": {Process: day19.Process, TestPart1: "33", TestPart2: "", Part1: "", Part2: ""},
 		"20": {Process: day20.Process, TestPart1: "3", TestPart2: "1623178306", Part1: "10831", Part2: "6420481789383"},
+		"21": {Process: day21.Process, TestPart1: "152", TestPart2: "301", Part1: "364367103397416", Part2: "3782852515583"},
+		"22": {Process: day22.Process, TestPart1: "", TestPart2: "", Part1: "", Part2: ""},
+		"23": {Process: day23.Process, TestPart1: "", TestPart2: "", Part1: "", Part2: ""},
+		"24": {Process: day24.Process, TestPart1: "", TestPart2: "", Part1: "", Part2: ""},
+		"25": {Process: day25.Process, TestPart1: "", TestPart2: "", Part1: "", Part2: ""},
 	}
 	day, isPresent = days[number]
 	return

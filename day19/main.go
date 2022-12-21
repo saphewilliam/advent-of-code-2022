@@ -19,6 +19,59 @@ type State struct {
 	supplies, robots Materials
 }
 
+func canBuildRobot(supplies, cost Materials) bool {
+	return supplies.ore >= cost.ore && supplies.clay >= cost.clay && supplies.obsidian >= cost.obsidian && supplies.geode >= supplies.geode
+}
+
+func buyRobot(supplies, cost Materials) Materials {
+	return Materials{ore: supplies.ore - cost.ore, clay: supplies.clay - cost.clay, obsidian: supplies.obsidian - cost.obsidian, geode: supplies.geode - cost.geode}
+}
+
+func greedySimulate(blueprint Blueprint, robots, supplies Materials, time int) int {
+	additionalRobots, potentialSupplies := Materials{}, Materials{ore: supplies.ore, clay: supplies.clay, obsidian: supplies.obsidian, geode: supplies.geode}
+
+	for i := 0; i < time; i++ {
+		potentialSupplies = Materials{
+			ore:      potentialSupplies.ore + robots.ore + additionalRobots.ore,
+			clay:     potentialSupplies.clay + robots.clay + additionalRobots.clay,
+			obsidian: potentialSupplies.obsidian + robots.obsidian + additionalRobots.obsidian,
+			geode:    potentialSupplies.geode + robots.geode + additionalRobots.geode,
+		}
+
+		eeeh := func(robot Materials) bool {
+			return potentialSupplies.ore >= robot.ore*(additionalRobots.ore+1) && potentialSupplies.clay >= robot.clay*(additionalRobots.ore+1) && potentialSupplies.obsidian >= robot.obsidian*(additionalRobots.ore+1) && potentialSupplies.geode >= robot.geode*(additionalRobots.ore+1)
+		}
+
+		if eeeh(blueprint.ore) {
+			additionalRobots.ore++
+		}
+		if eeeh(blueprint.clay) {
+			additionalRobots.clay++
+		}
+		if eeeh(blueprint.obsidian) {
+			additionalRobots.obsidian++
+		}
+		if eeeh(blueprint.geode) {
+			additionalRobots.geode++
+		}
+	}
+
+	return potentialSupplies.geode
+
+	// additional_robots = defaultdict(int)
+	// potential_materials = defaultdict(int, materials)
+	// for _ in range(time):
+	//     for robot in blueprint:
+	//         potential_materials[robot] += robots[robot] + additional_robots[robot]
+	//     for robot, costs in blueprint.items():
+	//         if all(
+	//             potential_materials[material] >= cost * (additional_robots[robot] + 1)
+	//             for material, cost in costs.items()
+	//         ):
+	//             additional_robots[robot] += 1
+	// return potential_materials["geode"]
+}
+
 func Process(input []string) (solution1 lib.Solution, solution2 lib.Solution) {
 	blueprints := make([]Blueprint, len(input))
 	for i, l := range input {
@@ -27,25 +80,35 @@ func Process(input []string) (solution1 lib.Solution, solution2 lib.Solution) {
 		blueprints[i] = bp
 	}
 
-	// TODO
-	// Less geode robots is always worse
 	for _, blueprint := range blueprints {
-		initialState := State{robots: Materials{ore: 1}}
-		seen := lib.NewSet(initialState)
-		q := lib.NewQueue(initialState)
-		blueprintMax := 0
+		robotLimits := Materials{
+			ore:      lib.Max(lib.Max(lib.Max(blueprint.ore.ore, blueprint.clay.ore), blueprint.obsidian.ore), blueprint.geode.ore),
+			clay:     blueprint.obsidian.clay,
+			obsidian: blueprint.geode.obsidian,
+			geode:    1000,
+		}
 
-		time := 0
+		initialState := State{robots: Materials{ore: 1}, time: 24}
+		q := lib.NewQueue(initialState)
+		maxGeode := 0
+		time := 24
 		for !q.IsEmpty() {
 			s := q.Dequeue()
 
+			maxGeode = lib.Max(maxGeode, s.supplies.geode)
 			if time != s.time {
 				time = s.time
-				fmt.Println(time, "/ 24")
+				fmt.Println(time, maxGeode)
 			}
 
-			if s.time == 24 {
-				blueprintMax = lib.Max(blueprintMax, s.supplies.geode)
+			if greedySimulate(blueprint, s.robots, s.supplies, time) < maxGeode {
+				continue
+			}
+
+			estimatedGeodes := s.supplies.geode + s.robots.geode*time
+			maxGeode = lib.Max(maxGeode, estimatedGeodes)
+
+			if s.time == 0 {
 				continue
 			}
 
@@ -57,51 +120,41 @@ func Process(input []string) (solution1 lib.Solution, solution2 lib.Solution) {
 			}
 
 			// Build no robot and continue time
-			moves := []State{{time: s.time + 1, supplies: nextSupplies, robots: Materials{ore: s.robots.ore, clay: s.robots.clay, obsidian: s.robots.obsidian, geode: s.robots.geode}}}
+			// TODO test if just passing s.robots to robots has any effect
+			moves := []State{{time: s.time - 1, supplies: nextSupplies, robots: Materials{ore: s.robots.ore, clay: s.robots.clay, obsidian: s.robots.obsidian, geode: s.robots.geode}}}
 
-			// Build geode robot
-			if s.supplies.ore >= blueprint.geode.ore && s.supplies.obsidian >= blueprint.geode.obsidian {
-				newRobots := Materials{ore: s.robots.ore, clay: s.robots.clay, obsidian: s.robots.obsidian, geode: s.robots.geode + 1}
-				newSupplies := Materials{ore: nextSupplies.ore - blueprint.geode.ore, clay: nextSupplies.clay - blueprint.geode.clay, obsidian: nextSupplies.obsidian - blueprint.geode.obsidian, geode: nextSupplies.geode - blueprint.obsidian.geode}
-				newState := State{time: s.time + 1, supplies: newSupplies, robots: newRobots}
+			if s.robots.ore < robotLimits.ore && canBuildRobot(s.supplies, blueprint.ore) {
+				newRobots := Materials{ore: s.robots.ore + 1, clay: s.robots.clay, obsidian: s.robots.obsidian, geode: s.robots.geode}
+				newSupplies := buyRobot(nextSupplies, blueprint.ore)
+				newState := State{time: s.time - 1, supplies: newSupplies, robots: newRobots}
 				moves = append(moves, newState)
-			} else {
-				// Build obsidian robot
-				if s.supplies.ore >= blueprint.obsidian.ore && s.supplies.clay >= blueprint.obsidian.clay {
-					newRobots := Materials{ore: s.robots.ore, clay: s.robots.clay, obsidian: s.robots.obsidian + 1, geode: s.robots.geode}
-					newSupplies := Materials{ore: nextSupplies.ore - blueprint.obsidian.ore, clay: nextSupplies.clay - blueprint.obsidian.clay, obsidian: nextSupplies.obsidian - blueprint.obsidian.obsidian, geode: nextSupplies.geode - blueprint.obsidian.geode}
-					newState := State{time: s.time + 1, supplies: newSupplies, robots: newRobots}
-					moves = append(moves, newState)
-				}
-
-				// Build clay robot
-				if s.supplies.ore >= blueprint.clay.ore {
-					newRobots := Materials{ore: s.robots.ore, clay: s.robots.clay + 1, obsidian: s.robots.obsidian, geode: s.robots.geode}
-					newSupplies := Materials{ore: nextSupplies.ore - blueprint.clay.ore, clay: nextSupplies.clay - blueprint.clay.clay, obsidian: nextSupplies.obsidian - blueprint.clay.obsidian, geode: nextSupplies.geode - blueprint.obsidian.geode}
-					newState := State{time: s.time + 1, supplies: newSupplies, robots: newRobots}
-					moves = append(moves, newState)
-				}
-
-				// Build ore robot
-				if s.supplies.ore >= blueprint.ore.ore {
-					newRobots := Materials{ore: s.robots.ore + 1, clay: s.robots.clay, obsidian: s.robots.obsidian, geode: s.robots.geode}
-					newSupplies := Materials{ore: nextSupplies.ore - blueprint.ore.ore, clay: nextSupplies.clay - blueprint.ore.clay, obsidian: nextSupplies.obsidian - blueprint.ore.obsidian, geode: nextSupplies.geode - blueprint.obsidian.geode}
-					newState := State{time: s.time + 1, supplies: newSupplies, robots: newRobots}
-					moves = append(moves, newState)
-				}
+			}
+			if s.robots.clay < robotLimits.clay && canBuildRobot(s.supplies, blueprint.clay) {
+				newRobots := Materials{ore: s.robots.ore, clay: s.robots.clay + 1, obsidian: s.robots.obsidian, geode: s.robots.geode}
+				newSupplies := buyRobot(nextSupplies, blueprint.clay)
+				newState := State{time: s.time - 1, supplies: newSupplies, robots: newRobots}
+				moves = append(moves, newState)
+			}
+			if s.robots.obsidian < robotLimits.obsidian && canBuildRobot(s.supplies, blueprint.obsidian) {
+				newRobots := Materials{ore: s.robots.ore, clay: s.robots.clay, obsidian: s.robots.obsidian + 1, geode: s.robots.geode}
+				newSupplies := buyRobot(nextSupplies, blueprint.obsidian)
+				newState := State{time: s.time - 1, supplies: newSupplies, robots: newRobots}
+				moves = append(moves, newState)
+			}
+			if s.robots.geode < robotLimits.geode && canBuildRobot(s.supplies, blueprint.geode) {
+				newRobots := Materials{ore: s.robots.ore, clay: s.robots.clay, obsidian: s.robots.obsidian, geode: s.robots.geode + 1}
+				newSupplies := buyRobot(nextSupplies, blueprint.geode)
+				newState := State{time: s.time - 1, supplies: newSupplies, robots: newRobots}
+				moves = append(moves, newState)
 			}
 
-			// fmt.Println(s, moves)
 			for _, m := range moves {
-				if !seen.Has(m) {
-					seen.Add(m)
-					q.Enqueue(m)
-				}
+				q.Enqueue(m)
 			}
 
 		}
 
-		solution1.I += blueprint.index * blueprintMax
+		solution1.I += blueprint.index * maxGeode
 	}
 
 	return
