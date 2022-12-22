@@ -59,8 +59,15 @@ func Abs(a int) int {
 	return int(math.Abs(float64(a)))
 }
 
-func Max(a, b int) int {
-	return int(math.Max(float64(a), float64(b)))
+func Max(numbers ...int) (max int) {
+	for i, n := range numbers {
+		if i == 0 {
+			max = n
+		} else {
+			max = int(math.Max(float64(max), float64(n)))
+		}
+	}
+	return
 }
 
 func Min(a, b int) int {
