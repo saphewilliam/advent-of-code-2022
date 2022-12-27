@@ -55,6 +55,10 @@ func ParseInt(value string) int {
 	return v
 }
 
+func ParseString(value int) string {
+	return strconv.Itoa(value)
+}
+
 func Abs(a int) int {
 	return int(math.Abs(float64(a)))
 }
